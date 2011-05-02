@@ -99,8 +99,8 @@ function Frame:Startup()
 	self.scrollFrame = scrollFrame
 
 	--quality filter
-	local quality = Dropdowns:CreateQuality(self)
-	quality:SetPoint('BOTTOMLEFT', 0, 72)
+	--local quality = Dropdowns:CreateQuality(self)
+	--quality:SetPoint('BOTTOMLEFT', 0, 72)
 
 	--category filter
 	local category = Dropdowns:CreateCategory(self)
@@ -161,7 +161,7 @@ function Frame:Update(force)
 	if not data or update then
 		data, numResults = ItemDB:GetItems(
 			filter.search,
-			filter.class and {filter.class, filter.subClass, filter.slot},
+			filter.category,
 			filter.quality,
 			filter.minLevel,
 			filter.maxLevel
