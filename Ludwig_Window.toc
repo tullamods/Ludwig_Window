@@ -1,0 +1,12 @@
+## Interface: 40000
+## Title: Ludwig Window
+## Author: Tuller & Jaliborc (João Libório)
+## Notes: Load on demand search window for Ludwig
+
+## Dependencies: Ludwig, Ludwig_Data
+## LoadOnDemand: 1
+
+dropdowns.lua
+editboxes.lua
+others.lua
+frame.lua
