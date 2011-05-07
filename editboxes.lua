@@ -5,25 +5,26 @@ local Editboxes = Ludwig:NewModule('Editboxes')
 
 function Editboxes:Create(name, next, default, parent)
 	local edit = CreateFrame('EditBox', '&parent'..name, parent, 'InputBoxTemplate')
-	
-	edit:SetScript('OnShow', self.GoDefault)
-	edit:SetScript('OnEnterPressed', self.ClearFocus)
+	edit:SetScript('OnEnterPressed', edit.ClearFocus)
 	edit:SetScript('OnTextChanged', self.OnTextChanged)
 	edit:SetScript('OnTabPressed', self.OnTabPressed)
 	edit:SetScript('OnEditFocusLost', self.OnEditFocusLost)
 	edit:SetScript('OnEditFocusGained', self.OnEditFocusGained)
 	
-	edit:SetAutoFocus(false)
-	edit.Clear = self.GoDefault
+	edit.GoDefault = self.GoDefault
+	edit.ClearDefault = self.ClearDefault
 	edit.default = default
 	edit.next = next
 	edit.key = name
 
+	edit:SetAutoFocus(false)
+	edit:GoDefault()
+
 	return edit
 end
 
-function Editboxes:GoDefault()
-	if self:GetText() == '' then
+function Editboxes:GoDefault(onlyEmpty)
+	if not onlyEmpty or self:GetText() == '' then
 		self:SetText(self.default)
 		self:ClearFocus()
 	end
@@ -36,8 +37,9 @@ function Editboxes:ClearDefault()
 end
 
 function Editboxes:OnTextChanged(isUserInput)
+	local text = self:GetText()
 	if isUserInput then
-		self:GetParent:SetFilter(self.key, self:GetText())
+		self:GetParent():SetFilter(self.key, text and text ~= '' and text)
 	end
 end
 
@@ -47,7 +49,7 @@ end
 
 function Editboxes:OnEditFocusLost()
 	self:HighlightText(0, 0)
-	self:GoDefault()
+	self:GoDefault(true)
 end
 
 function Editboxes:OnEditFocusGained()

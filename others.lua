@@ -1,4 +1,5 @@
 local Others = Ludwig:NewModule('Others')
+local ItemDB = Ludwig['ItemDB']
 local ITEM_HEIGHT = 22
 
 
@@ -6,7 +7,7 @@ local ITEM_HEIGHT = 22
 
 local function itemButton_OnEnter(self)
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
-	--GameTooltip:SetHyperlink(ItemDB:GetItemLink(self:GetID()))
+	GameTooltip:SetHyperlink(ItemDB:GetItemLink(self:GetID(), self.name, self.quality))
 	GameTooltip:Show()
 end
 
@@ -17,7 +18,7 @@ local function itemButton_OnLeave(self)
 end
 
 local function itemButton_OnClick(self, button)
-	--HandleModifiedItemClick(ItemDB:GetItemLink(self:GetID()))
+	HandleModifiedItemClick(ItemDB:GetItemLink(self:GetID(), self.name, self.quality))
 end
 
 function Others:CreateItemButton(parent, i)

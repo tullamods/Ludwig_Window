@@ -1,12 +1,12 @@
 local Ludwig = _G['Ludwig']
 local Frame = Ludwig:NewModule('Frame', CreateFrame('Frame', 'LudwigFrame', UIParent))
-local filters, data, numResults = {}
+local filters, results, numResults = {}
 
 local ItemDB = Ludwig['ItemDB']
 local L = Ludwig['Locals']
 
 local ITEMS_TO_DISPLAY = 15
-local ITEM_STEP = 1
+local ITEM_STEP = 22
 
 
 --[[ Startup ]]--
@@ -32,6 +32,7 @@ function Frame:Startup()
 	self:SetAttribute('UIPanelLayout-whileDead', true)
 	self:SetAttribute('UIPanelLayout-area', true)
 	self:SetAttribute('UIPanelLayout-pushable', true)
+	tinsert(UISpecialFrames, self:GetName())
 
 	--icon
 	local icon = self:CreateTexture(nil, 'BACKGROUND')
@@ -99,22 +100,28 @@ function Frame:Startup()
 	self.scrollFrame = scrollFrame
 
 	--quality filter
-	--local quality = Dropdowns:CreateQuality(self)
-	--quality:SetPoint('BOTTOMLEFT', 0, 72)
+	local quality = Dropdowns:CreateQuality(self)
+	quality:SetPoint('BOTTOMLEFT', 0, 72)
+	self.quality = quality
 
 	--category filter
 	local category = Dropdowns:CreateCategory(self)
 	category:SetPoint('BOTTOMLEFT', 110, 72)
+	self.category = category
 
 	--item buttons
-	self.itemButtons = setmetatable({}, {__index = function(t, k)
-		local item = Others:CreateItemButton(self, k)
-		item:SetPoint('TOPLEFT', scrollFrame, 'TOPLEFT', 0, -item:GetHeight() * (k-1))
-		t[k] = item
-		return item
-	end})
+	local items = {}
+	for i = 1, ITEMS_TO_DISPLAY do
+		local item = Others:CreateItemButton(self, i)
+		item:SetPoint('TOPLEFT', scrollFrame, 'TOPLEFT', 0, -item:GetHeight() * (i-1))
+		items[i] = item
+	end
+	self.itemButtons = items
 	
-	tinsert(UISpecialFrames, self:GetName())
+	-- clean modules
+	wipe(Dropdowns)
+	wipe(Editboxes)
+	wipe(Others)
 end
 
 
@@ -135,7 +142,7 @@ end
 
 function Frame:OnHide()
 	PlaySound('igCharacterInfoClose')
-	data, numResults = nil
+	results, numResults = nil
 	collectgarbage() -- it's important to keep our trash clean. We don't want to attract rats, do we?
 end
 
@@ -144,7 +151,7 @@ end
 --[[ Update ]]--
 
 function Frame:ScheduleUpdate()
-	self.timer = 0.3
+	self.timer = 0.4
 	self:SetScript('OnUpdate', self.DelayUpdate)
 end
 
@@ -157,14 +164,14 @@ function Frame:DelayUpdate(elapsed)
 	end
 end
 
-function Frame:Update(force)
-	if not data or update then
-		data, numResults = ItemDB:GetItems(
-			filter.search,
-			filter.category,
-			filter.quality,
-			filter.minLevel,
-			filter.maxLevel
+function Frame:Update(search)
+	if not results or search then
+		results, numResults = ItemDB:GetItems(
+			filters.search,
+			filters.category,
+			filters.minLevel,
+			filters.maxLevel,
+			filters.quality
 		)
 		
 		self.title:SetText(L.FrameTitle:format(numResults))
@@ -172,21 +179,20 @@ function Frame:Update(force)
 
 	local scrollFrame = self.scrollFrame
 	local offset = FauxScrollFrame_GetOffset(scrollFrame) or 0
+	local buttons = self.itemButtons
 	
 	for i = 1, ITEMS_TO_DISPLAY do
 		local index = i + offset
+		local button = buttons[i]
+		
 		if index > numResults then
-			local button = rawget(self.itemButtons, i)
-			if button then
-				button:Hide()
-			end
+			button:Hide()
 		else
-			local id, name, quality = ItemDB:GetItem(data, index)
-			local button = self.itemButtons[i]
-
+			local id, name, quality = ItemDB:GetItem(results, index)
 			button.icon:SetTexture(GetItemIcon(id))
-			--button:SetFormattedText('%s%s|r', hex, name)
-			button:SetText(name)
+			button:SetFormattedText('%s%s|r', quality, name)
+			button.quality = quality
+			button.name = name
 			button:SetID(id)
 			button:Show()
 		end
@@ -223,26 +229,23 @@ function Frame:SetFilter(index, value, force)
 end
 
 function Frame:GetFilter(index)
-	return Search:GetFilter(index)
+	return filters[index]
 end
 
 function Frame:ClearFilters()
 	local name = self:GetName()
-	
-	self.search:Clear()
-	self.minLevel:Clear()
-	self.maxLevel:Clear()
-	
-	self:ClearDropdown(self.category, categoryFilter_UpdateText, ALL)
-	self:ClearDropdown(self.quality, qualityFilter_UpdateText, -1)
-
 	wipe(filters)
+	
+	self.search:GoDefault()
+	self.minLevel:GoDefault()
+	self.maxLevel:GoDefault()
+	
+	self.category:UpdateText()
+	self.quality:UpdateText()
+
 	self:Update(true)
 end
 
-function Frame:ClearDropdown(dropdown, method, value)
-	UIDropDownMenu_SetSelectedValue(dropdown, value)
-	method(dropdown)
-end
 
 Frame:Startup()
+Frame:Toggle()
