@@ -1,5 +1,5 @@
 local Others = Ludwig:NewModule('Others')
-local ItemDB = Ludwig['ItemDB']
+local ItemDB = Ludwig('ItemDB')
 local ITEM_HEIGHT = 22
 
 
@@ -18,7 +18,9 @@ local function itemButton_OnLeave(self)
 end
 
 local function itemButton_OnClick(self, button)
-	HandleModifiedItemClick(ItemDB:GetItemLink(self:GetID(), self.name, self.quality))
+	local itemLink = ItemDB:GetItemLink(self:GetID(), self.name, self.quality)
+	print(itemLink)
+	HandleModifiedItemClick(itemLink)
 end
 
 function Others:CreateItemButton(parent, i)
@@ -76,7 +78,8 @@ local function scrollFrame_OnVerticalScroll(self, offset)
 end
 
 function Others:CreateScrollFrame(parent)
-	local f = CreateFrame('ScrollFrame', '&parentScrollFrame', parent, 'FauxScrollFrameTemplate')
+	local f = CreateFrame('ScrollFrame', '$parentScrollFrame', parent, 'FauxScrollFrameTemplate')
 	f:SetScript('OnVerticalScroll', scrollFrame_OnVerticalScroll)
+	
 	return f
 end

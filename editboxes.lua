@@ -4,7 +4,7 @@ local Editboxes = Ludwig:NewModule('Editboxes')
 --[[ Common ]]--
 
 function Editboxes:Create(name, next, default, parent)
-	local edit = CreateFrame('EditBox', '&parent'..name, parent, 'InputBoxTemplate')
+	local edit = CreateFrame('EditBox', '$parent'..name, parent, 'InputBoxTemplate')
 	edit:SetScript('OnEnterPressed', edit.ClearFocus)
 	edit:SetScript('OnTextChanged', self.OnTextChanged)
 	edit:SetScript('OnTabPressed', self.OnTabPressed)

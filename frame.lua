@@ -2,8 +2,8 @@ local Ludwig = _G['Ludwig']
 local Frame = Ludwig:NewModule('Frame', CreateFrame('Frame', 'LudwigFrame', UIParent))
 local filters, results, numResults = {}
 
-local ItemDB = Ludwig['ItemDB']
-local L = Ludwig['Locals']
+local ItemDB = Ludwig('ItemDB')
+local L = Ludwig('Locals')
 
 local ITEMS_TO_DISPLAY = 15
 local ITEM_STEP = 22
@@ -12,9 +12,11 @@ local ITEM_STEP = 22
 --[[ Startup ]]--
 
 function Frame:Startup()
-	local Dropdowns = Ludwig['Dropdowns']
-	local Editboxes = Ludwig['Editboxes']
-	local Others = Ludwig['Others']
+	self:Hide()
+
+	local Dropdowns = Ludwig('Dropdowns')
+	local Editboxes = Ludwig('Editboxes')
+	local Others = Ludwig('Others')
 
 	--set attributes
 	self:SetScript('OnShow', self.OnShow)
@@ -24,15 +26,13 @@ function Frame:Startup()
 	self:SetHitRectInsets(0, 35, 0, 75)
 	self:SetSize(384, 512)
 	self:EnableMouse(true)
-	self:SetToplevel(true)
-	self:SetMovable(true)
 
 	self:SetAttribute('UIPanelLayout-defined', true)
 	self:SetAttribute('UIPanelLayout-enabled', true)
 	self:SetAttribute('UIPanelLayout-whileDead', true)
-	self:SetAttribute('UIPanelLayout-area', true)
-	self:SetAttribute('UIPanelLayout-pushable', true)
-	tinsert(UISpecialFrames, self:GetName())
+	self:SetAttribute('UIPanelLayout-area', 'left')
+	self:SetAttribute('UIPanelLayout-pushable', 1)
+	table.insert(UISpecialFrames, self:GetName())
 
 	--icon
 	local icon = self:CreateTexture(nil, 'BACKGROUND')
@@ -246,6 +246,4 @@ function Frame:ClearFilters()
 	self:Update(true)
 end
 
-
 Frame:Startup()
-Frame:Toggle()

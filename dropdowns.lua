@@ -1,11 +1,11 @@
 local Dropdowns = Ludwig:NewModule('Dropdowns')
-local ItemDB = Ludwig['ItemDB']
+local ItemDB = Ludwig('ItemDB')
 
 
 --[[ Common ]]--
 
 function Dropdowns:Create(name, width, default, initialize, onClick, updateText, parent)
-	local drop = CreateFrame('Frame', '&parent'..name, parent, 'UIDropDownMenuTemplate')
+	local drop = CreateFrame('Frame', '$parent'..name, parent, 'UIDropDownMenuTemplate')
 	drop.ClickItem = self.ClickItem
 	drop.AddItem = self.AddItem
 	drop.UpdateText = updateText
