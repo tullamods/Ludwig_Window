@@ -25,7 +25,7 @@ end
 function Others:CreateItemButton(parent, i)
 	local b = CreateFrame('Button', '$parentItem'..i, parent)
 	b:SetHighlightTexture([[Interface\QuestFrame\UI-QuestTitleHighlight]])
-	b:SetSize(300, 22)
+	b:SetSize(300, ITEM_HEIGHT)
 
 	local text = b:CreateFontString(nil, 'OVERLAY', 'GameFontNormalLeft')
 	text:SetPoint('TOPLEFT', 28, 0)
@@ -37,8 +37,8 @@ function Others:CreateItemButton(parent, i)
 	icon:SetPoint('LEFT', 4, 0)
 	icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 	icon:SetNonBlocking(true)
-	
 	b.icon = icon
+	
 	b:SetScript('OnEnter', itemButton_OnEnter)
 	b:SetScript('OnLeave', itemButton_OnLeave)
 	b:SetScript('OnClick', itemButton_OnClick)
