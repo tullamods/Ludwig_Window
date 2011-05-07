@@ -19,7 +19,6 @@ end
 
 local function itemButton_OnClick(self, button)
 	local itemLink = ItemDB:GetItemLink(self:GetID(), self.name, self.quality)
-	print(itemLink)
 	HandleModifiedItemClick(itemLink)
 end
 
