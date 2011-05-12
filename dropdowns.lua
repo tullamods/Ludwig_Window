@@ -11,10 +11,10 @@ function Dropdowns:Create(name, width, default, initialize, onClick, updateText,
 	drop.UpdateText = updateText
 	drop.onClick = onClick
 	drop.default = default
-	
+
 	UIDropDownMenu_Initialize(drop, initialize)
 	UIDropDownMenu_SetWidth(drop, width)
-	
+
 	drop:UpdateText()
 	return drop
 end
@@ -27,11 +27,11 @@ function Dropdowns:AddItem(text, value, checked, level, hasArrow, ...)
 	info.value = value
 	info.text = text
 	info.owner = self
-	
+
 	for i = 1, select('#', ...) do
 		info['arg' .. i] = select(i, ...)
 	end
-	
+
 	UIDropDownMenu_AddButton(info, level)
 end
 
@@ -50,12 +50,27 @@ local function category_UpdateText(self)
 	local parent = self:GetParent()
 	local category = parent:GetFilter('category')
 	local text
-	
+
 	if category then
-		if #category > 1 then
-			text = ('%s - %s'):format(category[#category - 1], category[#category])
+		local categoryText = {}
+		local subCats = nil
+
+		for level, selectedIndex in ipairs(category) do
+			local i = 1
+			for category, subCategories in ItemDB:IterateCategories(subCats, level) do
+				if i == selectedIndex then
+					subCats = subCategories
+					table.insert(categoryText, category)
+					break
+				end
+				i = i + 1
+			end
+		end
+
+		if #categoryText > 1 then
+			text = ('%s - %s'):format(categoryText[#categoryText - 1], categoryText[#categoryText])
 		else
-			text = category[1]
+			text = categoryText[1]
 		end
 	else
 		text = ALL
@@ -66,11 +81,11 @@ end
 
 local function category_OnClick(self, level)
 	local parent = self.owner:GetParent()
-	
+
 	if self.value ~= ALL then
 		local category = CopyTable(selections)
 		category[level] = self.value
-		
+
 		parent:SetFilter('category', category, true)
 	else
 		parent:SetFilter('category', nil, true)
@@ -83,16 +98,16 @@ local function category_Initialize(self, level)
 	if level == 1 then
 		self:AddItem(ALL, ALL, not category)
 	end
-	
+
 	local parentID = UIDROPDOWNMENU_MENU_VALUE
 	local parentChecked = category
 	local parentLevel = level - 1
-	
+
 	selections[parentLevel] = parentID
 	for i = level, 3 do
 		selections[i] = nil
 	end
-	
+
 	if category then
 		for i = 1, parentLevel do
 			if category[i] ~= selections[i] then
@@ -101,15 +116,15 @@ local function category_Initialize(self, level)
 			end
 		end
 	end
-	
+
 	local data = parentID and subs[parentLevel][parentID]
 	local current = parentChecked and category[level]
 	local subs = subs[level]
 	local i = 1
-	
+
 	for category, subCategories in ItemDB:IterateCategories(data, level) do
 		self:AddItem(category, i, i == current, level, ItemDB:HasSubCategories(subCategories, level), level)
-		
+
 		subs[i] = subCategories
 		i = i + 1
 	end
@@ -137,14 +152,14 @@ local function quality_OnClick(self)
 	self.owner:GetParent():SetFilter('quality', self.value > -1 and tostring(self.value), true)
 end
 
-local function quality_Initialize(self)	
+local function quality_Initialize(self)
 	local quality = tonumber(self:GetParent():GetFilter('quality'))
 	self:AddItem(ALL, -1, not quality)
-	
+
 	for i = 0, #ITEM_QUALITY_COLORS do
 		local color = ITEM_QUALITY_COLORS[i]
 		local text = color.hex .. _G[('ITEM_QUALITY%d_DESC'):format(i)] .. '|r'
-		
+
 		self:AddItem(text, i, quality == i)
 	end
 end
