@@ -1,5 +1,5 @@
-## Interface: 40100
-## Title: Ludwig Window
+## Interface: 40200
+## Title: |cff20ff20Ludwig Window|r
 ## Author: Tuller & Jaliborc (João Libório)
 ## Notes: Load on demand search window for Ludwig
 ## Dependencies: Ludwig, Ludwig_Data
