@@ -77,11 +77,12 @@ end
 local function category_BuildList(self, filters, list, level, source, ...)
   local i = 1
 
-  for name, subs in ItemDB:IterateCategories(source, level) do
+  for _, category in ipairs(source) do
+    local name, subs = unpack(category)
     local values = {i, name, ...}
     local total = #values
-    local checked = filters
 
+    local checked = filters
     if checked then
       for i = 1, total, 2 do
         if filters[(total + 1 - i) / 2] ~= values[i] then
@@ -92,7 +93,7 @@ local function category_BuildList(self, filters, list, level, source, ...)
     end
     
     local item = self:AddItem(name, values, checked)
-    if ItemDB:HasSubCategories(subs, level) then
+    if subs then
       item.menuList = {}
       item.hasArrow = true
   
@@ -110,7 +111,7 @@ local function category_Initialize(self, level, list)
   local filters = self:GetParent():GetFilter('category')
 
   if not list then
-    list = category_BuildList(self, filters, {}, 1)
+    list = category_BuildList(self, filters, {}, 1, Ludwig_Classes)
     tinsert(list, 1, self:AddItem(ALL, nil, not filters))
   end
 
@@ -136,7 +137,7 @@ local function quality_UpdateText(self)
 end
 
 local function quality_Select(self, i)
-  self:GetParent():SetFilter('quality', i > -1 and tostring(i), true)
+  self:GetParent():SetFilter('quality', i > -1 and i, true)
 end
 
 local function quality_AddItem(self, ...)

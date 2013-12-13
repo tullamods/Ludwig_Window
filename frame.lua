@@ -190,8 +190,8 @@ function Frame:Update(search)
 			button:Hide()
 		else
 			local id, name, quality = ItemDB:GetItem(results, index)
+			button:SetFormattedText('%s%s|r', ITEM_QUALITY_COLORS[quality].hex, name)
 			button.icon:SetTexture(GetItemIcon(id))
-			button:SetFormattedText('%s%s|r', quality, name)
 			button.quality = quality
 			button.name = name
 			button:SetID(id)
