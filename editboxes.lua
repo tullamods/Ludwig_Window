@@ -73,7 +73,7 @@ function Editboxes:CreateNumeric(...)
 	edit:SetSize(25, 16)
 	edit:SetNumeric(true)
 	edit:SetAutoFocus(false)
-	edit:SetMaxLetters(2)
+	edit:SetMaxLetters(3)
 	return edit
 end
 

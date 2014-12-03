@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: 60000
 ## Title: |cffbd40bdLudwig Window|r
 ## Author: Tuller & Jaliborc (João Cardoso)
 ## Notes: Load on demand search window for Ludwig
