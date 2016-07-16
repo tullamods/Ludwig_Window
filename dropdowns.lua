@@ -6,12 +6,12 @@ local ItemDB = Ludwig('ItemDB')
 
 function Dropdowns:Create(name, width, initialize, click, update, parent)
 	local drop = CreateFrame('Frame', '$parent'..name, parent, 'UIDropDownMenuTemplate')
-  drop.UpdateText = self.UpdateText
-  drop.AddItem = self.AddItem
-  drop.OnClick = self.OnClick
+    drop.UpdateText = self.UpdateText
+    drop.AddItem = self.AddItem
+    drop.OnClick = self.OnClick
 
-  drop.update = update
-  drop.click = click
+    drop.update = update
+    drop.click = click
 
 	UIDropDownMenu_Initialize(drop, initialize)
 	UIDropDownMenu_SetWidth(drop, width)
@@ -21,102 +21,86 @@ function Dropdowns:Create(name, width, initialize, click, update, parent)
 end
 
 function Dropdowns:UpdateText()
-  _G[self:GetName() .. 'Text']:SetText(self:update())
+    _G[self:GetName() .. 'Text']:SetText(self:update())
 end
 
-function Dropdowns:AddItem(text, value, checked)
-  return {
-    func = self.OnClick,
-    checked = checked,
-    text = text,
-    arg1 = self,
-    arg2 = value
-  }
+function Dropdowns:AddItem(text, value, checked, arrow)
+    return UIDropDownMenu_AddButton({
+        func = self.OnClick,
+        checked = checked,
+        hasArrow = arrow,
+        text = text,
+        arg1 = self,
+        arg2 = value,
+        value = value
+    }, UIDROPDOWNMENU_MENU_LEVEL)
 end
 
 function Dropdowns:OnClick(self, ...)
-  self:click(...)
-  self:UpdateText()
-  CloseDropDownMenus()
+    self:click(...)
+    self:UpdateText()
+    CloseDropDownMenus()
 end
 
 
 --[[ Category ]]--
 
 local function category_UpdateText(self)
-  local level = self.names and #self.names or 0
-  if level > 0 then
-    if level > 1 then
-      return ('%s - %s'):format(self.names[2], self.names[1])
-    else
-      return self.names[1]
+    local filters = self:GetParent():GetFilter('category')
+    if filters then
+        local classes = Ludwig_Classes
+        for l = 1, #filters-1 do
+            classes = classes[filters[l]][2]
+        end
+
+        local class = classes[filters[#filters]]
+        return type(class) == 'table' and class[1] or class
+     else
+        return ALL
     end
-  else
-    return ALL
-  end
 end
 
 local function category_Select(self, values)
-  local filter = {}
-  local names = {}
-
-  if values then
-    for i = #values - 1, 1, -2 do
-      tinsert(filter, values[i])
-    end
-    
-    for i = 2, #values, 2 do
-      tinsert(names, values[i])
-    end
-  end
-
-  self:GetParent():SetFilter('category', values and filter, true)
-  self.names = names
+    self:GetParent():SetFilter('category', values, true)
 end
 
-local function category_BuildList(self, filters, list, level, source, ...)
-  local i = 1
-
-  for _, category in ipairs(source) do
-    local name, subs = unpack(category)
-    local values = {i, name, ...}
-    local total = #values
-
-    local checked = filters
-    if checked then
-      for i = 1, total, 2 do
-        if filters[(total + 1 - i) / 2] ~= values[i] then
-          checked = nil
-          break
+local function category_Compare(a, b)
+    if a and b and #a == #b then
+        for l = 1, #a do
+            if a[l] ~= b[l] then
+                return
+            end
         end
-      end
-    end
-    
-    local item = self:AddItem(name, values, checked)
-    if subs then
-      item.menuList = {}
-      item.hasArrow = true
-  
-      category_BuildList(self, filters, item.menuList, level + 1, subs, i, name, ...)
-    end
 
-    list[i] = item
-    i = i + 1
-  end
-
-  return list
+        return true
+    end
 end
 
-local function category_Initialize(self, level, list)
-  local filters = self:GetParent():GetFilter('category')
+local function category_Initialize(self, level)
+    if not level then
+        return
+    end
 
-  if not list then
-    list = category_BuildList(self, filters, {}, 1, Ludwig_Classes)
-    tinsert(list, 1, self:AddItem(ALL, nil, not filters))
-  end
+    local filters = self:GetParent():GetFilter('category')
+    local args = UIDROPDOWNMENU_MENU_VALUE or {}
 
-  EasyMenu_Initialize(self, level, list)
-  collectgarbage()
+    if level == 1 then
+        self:AddItem(ALL, nil, not filters)
+    end
+
+    local classes = Ludwig_Classes
+    for l = 1, level-1 do
+        classes = classes[args[l]][2]
+    end
+
+    for i, class in pairs(classes) do
+        local hasSubs = type(class) == 'table'
+        local name = hasSubs and class[1] or class
+        local value = {unpack(args)}
+        value[level] = i
+
+        self:AddItem(name, value, category_Compare(filters, value), hasSubs)
+    end
 end
 
 function Dropdowns:CreateCategory(parent)
@@ -140,19 +124,14 @@ local function quality_Select(self, i)
   self:GetParent():SetFilter('quality', i > -1 and i, true)
 end
 
-local function quality_AddItem(self, ...)
-  UIDropDownMenu_AddButton(self:AddItem(...))
-end
-
 local function quality_Initialize(self)
 	local quality = tonumber(self:GetParent():GetFilter('quality'))
-  quality_AddItem(self, ALL, -1, not quality)
+    self:AddItem(ALL, -1, not quality)
 
 	for i = 0, #ITEM_QUALITY_COLORS do
 		local color = ITEM_QUALITY_COLORS[i]
 		local text = color.hex .. _G[('ITEM_QUALITY%d_DESC'):format(i)] .. '|r'
-
-   quality_AddItem(self, text, i, quality == i)
+        self:AddItem(text, i, quality == i)
 	end
 end
 

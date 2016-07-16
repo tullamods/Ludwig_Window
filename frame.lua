@@ -32,7 +32,7 @@ function Frame:Startup()
 	self:SetAttribute('UIPanelLayout-whileDead', true)
 	self:SetAttribute('UIPanelLayout-area', 'left')
 	self:SetAttribute('UIPanelLayout-pushable', 1)
-	self:SetAttribute('UIPanelLayout-xoffset', 200)
+	self:SetAttribute('UIPanelLayout-xoffset', 0)
 	table.insert(UISpecialFrames, self:GetName())
 
 	--icon
