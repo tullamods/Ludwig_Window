@@ -1,9 +1,12 @@
-## Interface: 60100
+## Interface: 70100
 ## Title: |cffbd40bdLudwig Window|r
 ## Author: Tuller & Jaliborc (João Cardoso)
 ## Notes: Load on demand search window for Ludwig
+## Version: 7.1.0
+
 ## Dependencies: Ludwig, Ludwig_Data
 ## LoadOnDemand: 1
+
 dropdowns.lua
 editboxes.lua
 others.lua

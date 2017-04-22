@@ -1,62 +1,89 @@
 local Dropdowns = Ludwig:NewModule('Dropdowns')
 local ItemDB = Ludwig('ItemDB')
 
+local function compare(a, b)
+	if a == b then
+		return true
+	elseif type(a) == 'table' and type(b) == 'table' and #a <= #b then
+		for l = 1, #a do
+			if a[l] ~= b[l] then
+				return
+			end
+		end
+
+		return true
+	end
+end
+
 
 --[[ Common ]]--
 
-function Dropdowns:Create(name, width, initialize, click, update, parent)
+function Dropdowns:Create(name, width, initialize, onclick, getlabel, parent)
 	local drop = CreateFrame('Frame', '$parent'..name, parent, 'UIDropDownMenuTemplate')
-    drop.UpdateText = self.UpdateText
-    drop.AddItem = self.AddItem
-    drop.OnClick = self.OnClick
+  drop.UpdateText = self.UpdateText
+  drop.AddItem = self.AddItem
+  drop.OnClick = self.OnClick
 
-    drop.update = update
-    drop.click = click
+  drop.getlabel = getlabel
+  drop.onclick = onclick
 
 	UIDropDownMenu_Initialize(drop, initialize)
 	UIDropDownMenu_SetWidth(drop, width)
-
 	drop:UpdateText()
+
 	return drop
 end
 
 function Dropdowns:UpdateText()
-    _G[self:GetName() .. 'Text']:SetText(self:update())
+	_G[self:GetName() .. 'Text']:SetText(self:getlabel())
 end
 
-function Dropdowns:AddItem(text, value, checked, arrow)
-    return UIDropDownMenu_AddButton({
-        func = self.OnClick,
-        checked = checked,
-        hasArrow = arrow,
-        text = text,
-        arg1 = self,
-        arg2 = value,
-        value = value
-    }, UIDROPDOWNMENU_MENU_LEVEL)
+function Dropdowns:AddItem(text, value, selection, arrow)
+	if text and text ~= '' then
+	  return UIDropDownMenu_AddButton({
+				func = self.OnClick,
+	      checked = compare(value, selection),
+	      hasArrow = arrow,
+	      text = text,
+	      arg1 = self,
+	      arg2 = value,
+	      value = value
+	  }, UIDROPDOWNMENU_MENU_LEVEL)
+	end
 end
 
 function Dropdowns:OnClick(self, ...)
-    self:click(...)
-    self:UpdateText()
-    CloseDropDownMenus()
+	self:onclick(...)
+	self:UpdateText()
+	CloseDropDownMenus()
 end
 
 
 --[[ Category ]]--
 
-local function category_UpdateText(self)
-    local filters = self:GetParent():GetFilter('category')
-    if filters then
-        local classes = Ludwig_Classes
-        for l = 1, #filters-1 do
-            classes = classes[filters[l]][2]
-        end
+local function category_Initialize(self, level)
+    if not level then
+        return
+    end
 
-        local class = classes[filters[#filters]]
-        return type(class) == 'table' and class[1] or class
-     else
-        return ALL
+    local selection = self:GetParent():GetFilter('category')
+    local current = UIDROPDOWNMENU_MENU_VALUE or {}
+
+    if level == 1 then
+      	self:AddItem(ALL, nil, selection)
+
+				for id = 0, 30 do
+					self:AddItem(GetItemClassInfo(id), {id}, selection, GetItemSubClassInfo(id, 0))
+				end
+		elseif level == 2 then
+			for id = 0, 30 do
+				local name, hasSlots = GetItemSubClassInfo(current[1], id)
+				self:AddItem(name, {current[1], id}, selection, hasSlots)
+			end
+		elseif level == 3 then
+			for slot = 0, 30 do
+				self:AddItem(GetItemInventorySlotInfo(slot), {current[1], current[2], slot}, selection)
+			end
     end
 end
 
@@ -64,74 +91,46 @@ local function category_Select(self, values)
     self:GetParent():SetFilter('category', values, true)
 end
 
-local function category_Compare(a, b)
-    if a and b and #a == #b then
-        for l = 1, #a do
-            if a[l] ~= b[l] then
-                return
-            end
-        end
-
-        return true
-    end
-end
-
-local function category_Initialize(self, level)
-    if not level then
-        return
-    end
-
-    local filters = self:GetParent():GetFilter('category')
-    local args = UIDROPDOWNMENU_MENU_VALUE or {}
-
-    if level == 1 then
-        self:AddItem(ALL, nil, not filters)
-    end
-
-    local classes = Ludwig_Classes
-    for l = 1, level-1 do
-        classes = classes[args[l]][2]
-    end
-
-    for i, class in pairs(classes) do
-        local hasSubs = type(class) == 'table'
-        local name = hasSubs and class[1] or class
-        local value = {unpack(args)}
-        value[level] = i
-
-        self:AddItem(name, value, category_Compare(filters, value), hasSubs)
+local function category_GetText(self)
+    local selection = self:GetParent():GetFilter('category')
+    if not selection then
+        return ALL
+		elseif #selection == 1 then
+			return select(selection[1], GetAuctionItemClasses())
+		elseif #selection == 2 then
+			return select(selection[2], GetAuctionItemSubClasses(selection[1]))
     end
 end
 
 function Dropdowns:CreateCategory(parent)
-	return self:Create('Category', 200, category_Initialize, category_Select, category_UpdateText, parent)
+	return self:Create('Category', 200, category_Initialize, category_Select, category_GetText, parent)
 end
 
 
 --[[ Quality ]]--
 
-local function quality_UpdateText(self)
-	local quality = self:GetParent():GetFilter('quality') or -1
-	if quality ~= -1 then
-		local color = ITEM_QUALITY_COLORS[tonumber(quality)]
-		return color.hex .. _G[('ITEM_QUALITY%s_DESC'):format(quality)] .. '|r'
-	else
-		return ALL
-	end
-end
-
-local function quality_Select(self, i)
-  self:GetParent():SetFilter('quality', i > -1 and i, true)
-end
-
 local function quality_Initialize(self)
 	local quality = tonumber(self:GetParent():GetFilter('quality'))
-    self:AddItem(ALL, -1, not quality)
+  self:AddItem(ALL, nil, quality)
 
 	for i = 0, #ITEM_QUALITY_COLORS do
 		local color = ITEM_QUALITY_COLORS[i]
 		local text = color.hex .. _G[('ITEM_QUALITY%d_DESC'):format(i)] .. '|r'
-        self:AddItem(text, i, quality == i)
+    self:AddItem(text, i, quality)
+	end
+end
+
+local function quality_Select(self, i)
+  self:GetParent():SetFilter('quality', i, true)
+end
+
+local function quality_UpdateText(self)
+	local quality = self:GetParent():GetFilter('quality')
+	if quality then
+		local color = ITEM_QUALITY_COLORS[tonumber(quality)]
+		return color.hex .. _G[('ITEM_QUALITY%s_DESC'):format(quality)] .. '|r'
+	else
+		return ALL
 	end
 end
 
