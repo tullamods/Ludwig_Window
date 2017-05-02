@@ -1,10 +1,8 @@
 local Ludwig = _G['Ludwig']
 local Frame = Ludwig:NewModule('Frame', CreateFrame('Frame', 'LudwigFrame', UIParent))
-local filters, results, numResults = {}
-
-local ItemDB = Ludwig('ItemDB')
 local L = Ludwig('Locals')
 
+local filters, numResults, ids, names = {}, 0
 local ITEMS_TO_DISPLAY = 15
 local ITEM_STEP = 22
 
@@ -22,7 +20,7 @@ function Frame:Startup()
 	self:SetScript('OnShow', self.OnShow)
 	self:SetScript('OnHide', self.OnHide)
 	self.Startup = nil
-	
+
 	self:SetHitRectInsets(0, 35, 0, 75)
 	self:SetSize(384, 512)
 	self:EnableMouse(true)
@@ -118,7 +116,7 @@ function Frame:Startup()
 		items[i] = item
 	end
 	self.itemButtons = items
-	
+
 	-- clean modules
 	wipe(Dropdowns)
 	wipe(Editboxes)
@@ -143,7 +141,7 @@ end
 
 function Frame:OnHide()
 	PlaySound('igCharacterInfoClose')
-	results, numResults = nil
+	ids, names = nil
 	collectgarbage() -- it's important to keep our trash clean. We don't want to attract rats, do we?
 end
 
@@ -166,30 +164,47 @@ function Frame:DelayUpdate(elapsed)
 end
 
 function Frame:Update(search)
-	if not results or search then
-		results, numResults = ItemDB:GetItems(
+	if not ids or search then
+		ids, names = Ludwig('Database'):FindItems(
 			filters.search,
-			filters.category,
-			filters.minLevel,
-			filters.maxLevel,
-			filters.quality
-		)
-		
+			filters.category and filters.category[1], filters.category and filters.category[2],
+			filters.quality,
+			tonumber(filters.minLevel), tonumber(filters.maxLevel))
+
+		numResults = 0
+		for i, items in pairs(ids) do
+			numResults = numResults + #items
+		end
+
 		self.title:SetText(L.FrameTitle:format(numResults))
 	end
 
+	local buttons = self.itemButtons
 	local scrollFrame = self.scrollFrame
 	local offset = FauxScrollFrame_GetOffset(scrollFrame) or 0
-	local buttons = self.itemButtons
-	
+
 	for i = 1, ITEMS_TO_DISPLAY do
 		local index = i + offset
 		local button = buttons[i]
-		
+
 		if index > numResults then
 			button:Hide()
 		else
-			local id, name, quality = ItemDB:GetItem(results, index)
+			local quality
+			for q = 0, #ITEM_QUALITY_COLORS do
+				if ids[q] then
+					if index > #ids[q] then
+						index = index - #ids[q]
+					else
+						quality = q
+						break
+					end
+				end
+			end
+
+			local name = names[quality][index]
+			local id = tonumber(ids[quality][index], 36)
+
 			button:SetFormattedText('%s%s|r', ITEM_QUALITY_COLORS[quality].hex, name)
 			button.icon:SetTexture(GetItemIcon(id))
 			button.quality = quality
@@ -199,19 +214,7 @@ function Frame:Update(search)
 		end
 	end
 
-	FauxScrollFrame_Update(
-		scrollFrame,
-		numResults,
-		ITEMS_TO_DISPLAY,
-		ITEM_STEP,
-		self:GetName() .. 'Item',
-		300,
-		320,
-		nil,
-		nil,
-		nil,
-		false
-	)
+	FauxScrollFrame_Update(scrollFrame, numResults, ITEMS_TO_DISPLAY, ITEM_STEP)
 end
 
 
@@ -236,11 +239,11 @@ end
 function Frame:ClearFilters()
 	local name = self:GetName()
 	wipe(filters)
-	
+
 	self.search:GoDefault()
 	self.minLevel:GoDefault()
 	self.maxLevel:GoDefault()
-	
+
 	self.category:UpdateText()
 	self.quality:UpdateText()
 

@@ -1,5 +1,5 @@
 local Dropdowns = Ludwig:NewModule('Dropdowns')
-local ItemDB = Ludwig('ItemDB')
+local Database = Ludwig('Database')
 
 local function compare(a, b)
 	if a == b then
@@ -73,12 +73,16 @@ local function category_Initialize(self, level)
       	self:AddItem(ALL, nil, selection)
 
 				for id = 0, 30 do
-					self:AddItem(GetItemClassInfo(id), {id}, selection, GetItemSubClassInfo(id, 0))
+					if Database:ItemClassExists(id) then
+						self:AddItem(GetItemClassInfo(id), {id}, selection, GetItemSubClassInfo(id, 0))
+					end
 				end
 		elseif level == 2 then
 			for id = 0, 30 do
-				local name, hasSlots = GetItemSubClassInfo(current[1], id)
-				self:AddItem(name, {current[1], id}, selection, hasSlots)
+				if Database:ItemClassExists(current[1], id) then
+					local name, hasSlots = GetItemSubClassInfo(current[1], id)
+					self:AddItem(name, {current[1], id}, selection, hasSlots)
+				end
 			end
 		elseif level == 3 then
 			for slot = 0, 30 do
@@ -92,13 +96,13 @@ local function category_Select(self, values)
 end
 
 local function category_GetText(self)
-    local selection = self:GetParent():GetFilter('category')
-    if not selection then
+    local class = self:GetParent():GetFilter('category')
+    if not class then
         return ALL
-		elseif #selection == 1 then
-			return select(selection[1], GetAuctionItemClasses())
-		elseif #selection == 2 then
-			return select(selection[2], GetAuctionItemSubClasses(selection[1]))
+		elseif #class == 1 then
+			return GetItemClassInfo(class[1])
+		elseif #class == 2 then
+			return GetItemSubClassInfo(class[1], class[2])
     end
 end
 

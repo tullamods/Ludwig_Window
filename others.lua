@@ -1,5 +1,5 @@
 local Others = Ludwig:NewModule('Others')
-local ItemDB = Ludwig('ItemDB')
+local Database = Ludwig('Database')
 local ITEM_HEIGHT = 22
 
 
@@ -7,7 +7,7 @@ local ITEM_HEIGHT = 22
 
 local function itemButton_OnEnter(self)
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
-	GameTooltip:SetHyperlink(ItemDB:GetItemLink(self:GetID(), self.name, self.quality))
+	GameTooltip:SetHyperlink(Database:GetItemLink(self:GetID(), self.name, self.quality))
 	GameTooltip:Show()
 end
 
@@ -18,7 +18,7 @@ local function itemButton_OnLeave(self)
 end
 
 local function itemButton_OnClick(self, button)
-	local itemLink = ItemDB:GetItemLink(self:GetID(), self.name, self.quality)
+	local itemLink = Database:GetItemLink(self:GetID(), self.name, self.quality)
 	HandleModifiedItemClick(itemLink)
 end
 
@@ -38,7 +38,7 @@ function Others:CreateItemButton(parent, i)
 	icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 	icon:SetNonBlocking(true)
 	b.icon = icon
-	
+
 	b:SetScript('OnEnter', itemButton_OnEnter)
 	b:SetScript('OnLeave', itemButton_OnLeave)
 	b:SetScript('OnClick', itemButton_OnClick)
@@ -55,7 +55,7 @@ end
 
 function Others:CreateResetButton(parent)
 	local b = CreateFrame('Button', nil, parent)
-	
+
 	b:SetNormalTexture([[Interface\Buttons\CancelButton-Up]])
 	b:SetPushedTexture([[Interface\Buttons\CancelButton-Down]])
 	b:SetHighlightTexture([[Interface\Buttons\CancelButton-Highlight]])
@@ -79,6 +79,6 @@ end
 function Others:CreateScrollFrame(parent)
 	local f = CreateFrame('ScrollFrame', '$parentScrollFrame', parent, 'FauxScrollFrameTemplate')
 	f:SetScript('OnVerticalScroll', scrollFrame_OnVerticalScroll)
-	
+
 	return f
 end
