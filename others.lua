@@ -7,7 +7,7 @@ local ITEM_HEIGHT = 22
 
 local function itemButton_OnEnter(self)
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
-	GameTooltip:SetHyperlink(Database:GetItemLink(self:GetID(), self.name, self.quality))
+	GameTooltip:SetHyperlink(Database:GetLink(self:GetID(), self.name, self.quality))
 	GameTooltip:Show()
 end
 
@@ -18,7 +18,7 @@ local function itemButton_OnLeave(self)
 end
 
 local function itemButton_OnClick(self, button)
-	local itemLink = Database:GetItemLink(self:GetID(), self.name, self.quality)
+	local itemLink = Database:GetLink(self:GetID(), self.name, self.quality)
 	HandleModifiedItemClick(itemLink)
 end
 

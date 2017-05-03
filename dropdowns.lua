@@ -73,20 +73,22 @@ local function category_Initialize(self, level)
       	self:AddItem(ALL, nil, selection)
 
 				for id = 0, 30 do
-					if Database:ItemClassExists(id) then
+					if Database:ClassExists(id) then
 						self:AddItem(GetItemClassInfo(id), {id}, selection, GetItemSubClassInfo(id, 0))
 					end
 				end
 		elseif level == 2 then
 			for id = 0, 30 do
-				if Database:ItemClassExists(current[1], id) then
-					local name, hasSlots = GetItemSubClassInfo(current[1], id)
-					self:AddItem(name, {current[1], id}, selection, hasSlots)
+				if Database:ClassExists(current[1], id) then
+					local hasSlots = Database:HasEquipSlots(current[1], id)
+					self:AddItem(GetItemSubClassInfo(current[1], id), {current[1], id}, selection, hasSlots)
 				end
 			end
 		elseif level == 3 then
-			for slot = 0, 30 do
-				self:AddItem(GetItemInventorySlotInfo(slot), {current[1], current[2], slot}, selection)
+			for slot = 1, 30 do
+				if Database:ClassExists(current[1], current[2], slot) then
+					self:AddItem(GetItemInventorySlotInfo(slot), {current[1], current[2], slot}, selection)
+				end
 			end
     end
 end
@@ -99,11 +101,18 @@ local function category_GetText(self)
     local class = self:GetParent():GetFilter('category')
     if not class then
         return ALL
-		elseif #class == 1 then
-			return GetItemClassInfo(class[1])
-		elseif #class == 2 then
-			return GetItemSubClassInfo(class[1], class[2])
-    end
+		end
+
+		local text = GetItemClassInfo(class[1])
+		if #class >= 2 then
+			text = text .. ' - ' .. GetItemSubClassInfo(class[1], class[2])
+
+			if #class >= 3 then
+				text = text .. ' - ' .. GetItemInventorySlotInfo(class[3])
+			end
+		end
+
+		return text
 end
 
 function Dropdowns:CreateCategory(parent)
@@ -117,7 +126,7 @@ local function quality_Initialize(self)
 	local quality = tonumber(self:GetParent():GetFilter('quality'))
   self:AddItem(ALL, nil, quality)
 
-	for i = 0, #ITEM_QUALITY_COLORS do
+	for i = 0, #ITEM_QUALITY_COLORS - 1 do
 		local color = ITEM_QUALITY_COLORS[i]
 		local text = color.hex .. _G[('ITEM_QUALITY%d_DESC'):format(i)] .. '|r'
     self:AddItem(text, i, quality)

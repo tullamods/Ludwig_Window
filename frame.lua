@@ -165,9 +165,11 @@ end
 
 function Frame:Update(search)
 	if not ids or search then
-		ids, names = Ludwig('Database'):FindItems(
+		ids, names = Ludwig('Database'):Find(
 			filters.search,
-			filters.category and filters.category[1], filters.category and filters.category[2],
+			filters.category and filters.category[1],
+			filters.category and filters.category[2],
+			filters.category and filters.category[3],
 			filters.quality,
 			tonumber(filters.minLevel), tonumber(filters.maxLevel))
 
