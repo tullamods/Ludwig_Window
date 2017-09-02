@@ -31,7 +31,7 @@ function Frame:Startup()
 	self:SetAttribute('UIPanelLayout-area', 'left')
 	self:SetAttribute('UIPanelLayout-pushable', 1)
 	self:SetAttribute('UIPanelLayout-xoffset', 0)
-	table.insert(UISpecialFrames, self:GetName())
+	tinsert(UISpecialFrames, self:GetName())
 
 	--icon
 	local icon = self:CreateTexture(nil, 'BACKGROUND')
@@ -135,12 +135,12 @@ function Frame:Toggle()
 end
 
 function Frame:OnShow()
-	PlaySound('igCharacterInfoOpen')
+	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
 	self:Update(true)
 end
 
 function Frame:OnHide()
-	PlaySound('igCharacterInfoClose')
+	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
 	ids, names = nil
 	collectgarbage() -- it's important to keep our trash clean. We don't want to attract rats, do we?
 end
