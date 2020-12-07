@@ -126,7 +126,7 @@ local function quality_Initialize(self)
 	local quality = tonumber(self:GetParent():GetFilter('quality'))
   self:AddItem(ALL, nil, quality)
 
-	for i = 0, #ITEM_QUALITY_COLORS - 1 do
+	for i = 0, #ITEM_QUALITY_COLORS do
 		local color = ITEM_QUALITY_COLORS[i]
 		local text = color.hex .. _G[('ITEM_QUALITY%d_DESC'):format(i)] .. '|r'
     self:AddItem(text, i, quality)
